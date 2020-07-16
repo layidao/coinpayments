@@ -16,7 +16,7 @@ type errResponse struct {
 	Error string `json:"error"`
 }
 
-type clientOptions func(client *Client)
+type ClientOption func(client *Client)
 
 type Client struct {
 	client     *http.Client
@@ -25,7 +25,7 @@ type Client struct {
 	ipnSecret  string
 }
 
-func NewClient(publicKey, privateKey string, options ...clientOptions) *Client {
+func NewClient(publicKey, privateKey string, options ...ClientOption) *Client {
 	client := &Client{
 		privateKey: privateKey,
 		publicKey:  publicKey,
@@ -36,6 +36,12 @@ func NewClient(publicKey, privateKey string, options ...clientOptions) *Client {
 		o(client)
 	}
 	return client
+}
+
+func WithHTTPClient(httpClient *http.Client) ClientOption {
+	return func(client *Client) {
+		client.client = httpClient
+	}
 }
 
 func (c *Client) call(callable Callable, response interface{}) error {
