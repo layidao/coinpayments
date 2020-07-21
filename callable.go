@@ -2,7 +2,7 @@ package coinpayments
 
 import "net/url"
 
-type Callable interface {
+type callable interface {
 	command() string
 	values() url.Values
 }

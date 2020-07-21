@@ -4,7 +4,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha512"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -16,15 +15,17 @@ type errResponse struct {
 	Error string `json:"error"`
 }
 
+//ClientOption is an option used to modify a coinpayments api client
 type ClientOption func(client *Client)
 
+//Client allows programmatic access to the coinpayments api
 type Client struct {
 	client     *http.Client
 	privateKey string
 	publicKey  string
-	ipnSecret  string
 }
 
+//NewClient returns a new Client with the applied options
 func NewClient(publicKey, privateKey string, options ...ClientOption) *Client {
 	client := &Client{
 		privateKey: privateKey,
@@ -38,13 +39,14 @@ func NewClient(publicKey, privateKey string, options ...ClientOption) *Client {
 	return client
 }
 
+//WithHTTPClient is an option that makes the Client use the provided http client
 func WithHTTPClient(httpClient *http.Client) ClientOption {
 	return func(client *Client) {
 		client.client = httpClient
 	}
 }
 
-func (c *Client) call(callable Callable, response interface{}) error {
+func (c *Client) call(callable callable, response interface{}) error {
 	data := callable.values()
 
 	data.Add("key", c.publicKey)
@@ -75,7 +77,7 @@ func (c *Client) call(callable Callable, response interface{}) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return errors.New(fmt.Sprintf("coinpayments: api call returned unexpected status: %v", resp.StatusCode))
+		return fmt.Errorf("coinpayments: api call returned unexpected status: %v", resp.StatusCode)
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)

@@ -2,6 +2,7 @@ package coinpayments
 
 import "net/url"
 
+//Request is the representation of a '' api request
 type BalancesRequest struct {
 	All string
 }
