@@ -109,3 +109,11 @@ func (c *Client) makeHMAC(data string) (string, error) {
 	}
 	return fmt.Sprintf("%x", hash.Sum(nil)), nil
 }
+
+func (c *Client) makeIPNHMAC(data string, ipnSecret string) (string, error) {
+	hash := hmac.New(sha512.New, []byte(ipnSecret))
+	if _, err := hash.Write([]byte(data)); err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%x", hash.Sum(nil)), nil
+}

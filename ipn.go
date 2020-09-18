@@ -149,21 +149,23 @@ func (i *IPN) ToApiIPN() (*apiIPN, error) {
 	}, nil
 }
 
-func (c *Client) ParseIPN(r *http.Request) (*IPN, error) {
-	hmac := r.Header.Get("HMAC")
-
+func (c *Client) ParseIPN(r *http.Request, ipnSecret string) (*IPN, error) {
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, fmt.Errorf("coinpayments: error reading request body - %v", err)
 	}
 
-	genHMAC, err := c.makeHMAC(string(data))
-	if err != nil {
-		return nil, fmt.Errorf("coinpayments: error generating ipn HMAC - %v", err)
-	}
+	if ipnSecret != "" {
+		hmac := r.Header.Get("HMAC")
 
-	if hmac != genHMAC {
-		return nil, fmt.Errorf("coinpayments: could not validate server HMAC")
+		genHMAC, err := c.makeIPNHMAC(string(data), ipnSecret)
+		if err != nil {
+			return nil, fmt.Errorf("coinpayments: error generating ipn HMAC - %v", err)
+		}
+
+		if hmac != genHMAC {
+			return nil, fmt.Errorf("coinpayments: could not validate server HMAC")
+		}
 	}
 
 	values, err := url.ParseQuery(string(data))
